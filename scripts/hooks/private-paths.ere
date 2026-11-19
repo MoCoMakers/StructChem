@@ -1,0 +1,1 @@
+^(StructChemAIDocs|data|out|\.tmp-data|References)(/|$)|(^|/)\.env$|(^|/)\.mcp\.json$|(^|/)\.claude/settings\.local\.json$|\.(pdb|ent|cif|mmcif|bcif|xyz|pdf|xtc|trr|dcd|gro|tpr|cpt|edr|mrc|ccp4)$

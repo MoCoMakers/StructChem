@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Leak guard for the public StructChem repo. It rejects commits that stage:
+#   - paths that must stay local or private (see private-paths.ere next to this file)
+#   - structure, data, paper and trajectory files (.pdb, .cif, .pdf, .xtc, ...)
+#   - nested repositories recorded as gitlinks (e.g. StructChemAIDocs/)
+# Enabled per clone by scripts/setup-workspace.sh (git config core.hooksPath scripts/hooks).
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+pattern="$(tr -d '\r\n' < "$root/scripts/hooks/private-paths.ere")"
+fail=0
+
+blocked="$(git diff --cached --name-only --diff-filter=ACMR | grep -Ei "$pattern" || true)"
+if [[ -n "$blocked" ]]; then
+  echo "pre-commit: these staged paths must not enter the public repo:" >&2
+  printf '  %s\n' $blocked >&2
+  fail=1
+fi
+
+gitlinks="$(git diff --cached --raw --diff-filter=AM | awk '$2 == "160000" {print $NF}')"
+if [[ -n "$gitlinks" ]]; then
+  echo "pre-commit: nested repositories (gitlinks) are staged:" >&2
+  printf '  %s\n' $gitlinks >&2
+  fail=1
+fi
+
+if [[ $fail -ne 0 ]]; then
+  echo "Unstage them with: git restore --staged <path>   (and check .gitignore)" >&2
+  exit 1
+fi

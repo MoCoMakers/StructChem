@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Push guard for the public StructChem repo. Refuses to:
+#   - push to the private companion's remote (any URL containing "StructChemAIDocs")
+#   - push commits that contain private or data paths (see private-paths.ere), in case
+#     the pre-commit guard was skipped
+# Enabled per clone by scripts/setup-workspace.sh (git config core.hooksPath scripts/hooks).
+set -euo pipefail
+
+remote="$1"
+url="$2"
+
+if printf '%s' "$url" | grep -qi 'StructChemAIDocs'; then
+  echo "pre-push: refusing to push public StructChem to '$url'." >&2
+  echo "That is the private companion repo's remote. Check: git remote -v" >&2
+  exit 1
+fi
+
+root="$(git rev-parse --show-toplevel)"
+pattern="$(tr -d '\r\n' < "$root/scripts/hooks/private-paths.ere")"
+zero="0000000000000000000000000000000000000000"
+fail=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [[ "$local_sha" == "$zero" ]] && continue          # branch deletion
+  if [[ "$remote_sha" == "$zero" ]]; then
+    range=("$local_sha")                              # new branch: check its whole history
+  else
+    range=("$remote_sha..$local_sha")
+  fi
+  bad="$(git log --name-only --format= "${range[@]}" | grep -Ei "$pattern" | sort -u || true)"
+  if [[ -n "$bad" ]]; then
+    echo "pre-push: $local_ref has commits containing private or data paths:" >&2
+    printf '  %s\n' $bad >&2
+    fail=1
+  fi
+done
+
+[[ $fail -eq 0 ]] || { echo "Remove them from history before pushing to $remote." >&2; exit 1; }

@@ -1,0 +1,15 @@
+# Private companion repo (team only). Never commit, not even as a submodule pointer.
+StructChemAIDocs/
+
+# Structure files and tool output: local only
+data/
+out/
+.tmp-data/
+
+# Third-party source and docs cloned for reference
+References/
+
+# Local secrets and per-user agent config
+.env
+.mcp.json
+.claude/settings.local.json
