@@ -32,9 +32,11 @@ Any public RCSB entry works with `scripts/fetch-pdb.sh`. You can also put your o
 The team keeps its data, notes and planning in a private companion repo, cloned inside this one at `StructChemAIDocs/` and ignored by git here. **You don't need it to use StructChem.** If you're collaborating with the team and need it, contact the maintainers (contact channel: TODO), then:
 
 ```sh
-git clone <StructChemAIDocs URL> StructChemAIDocs
+git clone git@github.com:MoCoMakers/StructChemAIDocs.git StructChemAIDocs
 scripts/setup-workspace.sh
 ```
+
+How the two repos fit together, and why: [docs/two-repo-workspace.md](docs/two-repo-workspace.md).
 
 ## Licence
 
